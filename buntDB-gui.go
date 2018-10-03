@@ -60,7 +60,7 @@ func writeData(w http.ResponseWriter, r *http.Request) {
 	var key, value string
 
 	// open the specified DB
-	if dbPath, _ := r.URL.Query()["db"]; len(dbPath) > 1 {
+	if dbPath := r.URL.Query()["db"]; len(dbPath) > 1 {
 		db, err = buntdb.Open(dbPath[0])
 		// log error
 		if err != nil {
@@ -70,12 +70,12 @@ func writeData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get key
-	if keys, _ := r.URL.Query()["key"]; len(keys) > 1 {
+	if keys := r.URL.Query()["key"]; len(keys) > 1 {
 		key = keys[0]
 	}
 
 	// get value
-	if values, _ := r.URL.Query()["value"]; len(values) > 1 {
+	if values := r.URL.Query()["value"]; len(values) > 1 {
 		value = values[0]
 	}
 
@@ -83,9 +83,15 @@ func writeData(w http.ResponseWriter, r *http.Request) {
 	err = db.Update(func(tx *buntdb.Tx) error {
 		_, done, err := tx.Set(key, value, nil)
 		if done {
-			w.Write([]byte("Successfully set new value to DB"))
+
+			if _, err = w.Write([]byte("Successfully set new value to DB")); err != nil {
+				log.Println(err)
+			}
 		} else {
-			w.Write([]byte("write failed"))
+
+			if _, err = w.Write([]byte("write failed")); err != nil {
+				log.Println(err)
+			}
 		}
 		return err
 	})
@@ -100,7 +106,7 @@ func getAllData(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Page hit : /getAllData")
 
 	// open the specified DB
-	if dbPath, _ := r.URL.Query()["db"]; len(dbPath) > 1 {
+	if dbPath := r.URL.Query()["db"]; len(dbPath) > 1 {
 		db, err = buntdb.Open(dbPath[0])
 		// log error
 		if err != nil {
@@ -137,5 +143,7 @@ func getAllData(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	// Sending response
-	w.Write(jsonResponse)
+	if _, err = w.Write(jsonResponse); err != nil {
+		log.Println(err)
+	}
 }
