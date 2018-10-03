@@ -1,5 +1,6 @@
 # BuntDB-GUI (beta)
-[![Build Status](https://travis-ci.com/illuminati-RV/BuntDB-GUI.svg?branch=master)](https://travis-ci.com/illuminati-RV/BuntDB-GUI) </br>
+[![Build Status](https://travis-ci.com/illuminati-RV/BuntDB-GUI.svg?branch=master)](https://travis-ci.com/illuminati-RV/BuntDB-GUI) 
+</br>
 </br>
 GUI for managing [@tidwall/buntdb](https://github.com/tidwall/buntdb)
 
