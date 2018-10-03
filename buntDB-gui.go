@@ -82,6 +82,12 @@ func writeData(w http.ResponseWriter, r *http.Request) {
 	// Write data
 	err = db.Update(func(tx *buntdb.Tx) error {
 		_, done, err := tx.Set(key, value, nil)
+
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
 		if done {
 
 			if _, err = w.Write([]byte("Successfully set new value to DB")); err != nil {
