@@ -1,2 +1,2 @@
-# BuntDB-GUI
-In progress...
+# BuntDB-GUI (beta)
+GUI for managing @tidwall/buntdb
