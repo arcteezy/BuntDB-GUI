@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/tidwall/buntdb"
@@ -35,7 +36,7 @@ var err error
 func main() {
 
 	// Open the data.db file. It will be created if it doesn't exist.
-	db, err = buntdb.Open("data.db")
+	db, err = buntdb.Open("bunt.db")
 	if err != nil {
 		log.Println(err)
 	}
@@ -56,7 +57,6 @@ func main() {
 func writeData(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Page hit : /writeData")
-
 	var key, value string
 
 	// open the specified DB
@@ -101,10 +101,44 @@ func writeData(w http.ResponseWriter, r *http.Request) {
 		}
 		return err
 	})
+	// Variable to check save success
+	writeSuccess := false
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+		fmt.Println(err)
+	}
+	// Unmarshal
+	var data Data
+	err = json.Unmarshal(body, &data)
+  if err != nil {
 		log.Println(err)
 	}
-
+	fmt.Println(data.Key, data.Value)
+	if data.Key != "" {
+		// Write data
+		err = db.Update(func(tx *buntdb.Tx) error {
+			_, _, err := tx.Set(data.Key, data.Value, nil)
+			return err
+		})
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			writeSuccess = true
+		}
+	}
+	// Response
+	if writeSuccess {
+		response.Body = "SUCCESSFUL"
+	} else {
+		response.Body = "FAILED"
+	}
+	// Marshal response
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// Sending response
+	w.Write(jsonResponse)
 }
 
 // Function to read data
@@ -135,9 +169,9 @@ func getAllData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
+	fmt.Println(dbContent)
 	// Marshal into string
 	jsondata, err := json.Marshal(dbContent)
-	fmt.Println(string(jsondata))
 	if err != nil {
 		log.Println(err)
 	}
