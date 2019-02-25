@@ -187,3 +187,88 @@ func getAllData(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 }
+
+// Function to delete data
+func deleteData(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("Page hit : /deleteData")
+	var key string
+
+	// open the specified DB
+	if dbPath := r.URL.Query()["db"]; len(dbPath) > 1 {
+		db, err = buntdb.Open(dbPath[0])
+		// log error
+		if err != nil {
+			log.Println(err)
+		}
+		defer db.Close()
+	}
+
+	// get key
+	if keys := r.URL.Query()["key"]; len(keys) > 1 {
+		key = keys[0]
+	}
+
+	// Update db
+	err = db.Update(func(tx *buntdb.Tx) error {
+		_, done, err := tx.Delete(key)
+
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		if done {
+
+			if _, err = w.Write([]byte("Successfully removed data from DB")); err != nil {
+				log.Println(err)
+			}
+		} else {
+
+			if _, err = w.Write([]byte("delete failed")); err != nil {
+				log.Println(err)
+			}
+		}
+		return err
+	})
+	// Variable to check save success
+	writeSuccess := false
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// Unmarshal
+	var data Data
+	err = json.Unmarshal(body, &data)
+  
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println(data.Key, data.Value)
+	if data.Key != "" {
+		// Write data
+		err = db.Update(func(tx *buntdb.Tx) error {
+			_, _, err := tx.Set(data.Key, data.Value, nil)
+			return err
+		})
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			writeSuccess = true
+		}
+	}
+	// Response
+	if writeSuccess {
+		response.Body = "SUCCESSFUL"
+	} else {
+		response.Body = "FAILED"
+	}
+	// Marshal response
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// Sending response
+	w.Write(jsonResponse)
+}
+
