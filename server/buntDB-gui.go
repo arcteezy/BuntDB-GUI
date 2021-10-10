@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/tidwall/buntdb"
@@ -110,7 +110,7 @@ func writeData(w http.ResponseWriter, r *http.Request) {
 	// Unmarshal
 	var data Data
 	err = json.Unmarshal(body, &data)
-  if err != nil {
+	if err != nil {
 		log.Println(err)
 	}
 	fmt.Println(data.Key, data.Value)
@@ -211,14 +211,14 @@ func deleteData(w http.ResponseWriter, r *http.Request) {
 
 	// Update db
 	err = db.Update(func(tx *buntdb.Tx) error {
-		_, done, err := tx.Delete(key)
+		done, err := tx.Delete(key)
 
 		if err != nil {
 			log.Println(err)
 			return err
 		}
 
-		if done {
+		if done != "" {
 
 			if _, err = w.Write([]byte("Successfully removed data from DB")); err != nil {
 				log.Println(err)
@@ -240,7 +240,7 @@ func deleteData(w http.ResponseWriter, r *http.Request) {
 	// Unmarshal
 	var data Data
 	err = json.Unmarshal(body, &data)
-  
+
 	if err != nil {
 		log.Println(err)
 	}
@@ -271,4 +271,3 @@ func deleteData(w http.ResponseWriter, r *http.Request) {
 	// Sending response
 	w.Write(jsonResponse)
 }
-
